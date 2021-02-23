@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xsi:schemaLocation="http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.1.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.1.xsd
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.1.xsd">
+	<mvc:annotation-driven>
+		<mvc:argument-resolvers>
+			<bean class="sns.platform.common.resolver.AttrMapResolver"></bean>
+		</mvc:argument-resolvers>
+	</mvc:annotation-driven>
+
+	<mvc:resources mapping="/resources/**" location="/resources/"></mvc:resources>
+	
+	<bean
+		class="org.springframework.web.multipart.commons.CommonsMultipartResolver"
+		id="multipartResolver">
+		<property value="1000000000" name="maxUploadSize"></property>
+	</bean>
+	
+
+	<bean  id="NameViewResolver" class="org.springframework.web.servlet.view.BeanNameViewResolver">
+		<property name="order" value="0"></property>
+	</bean>
+
+	<bean id="viewResolver"
+		class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="order" value = "1"></property>
+		<property name="prefix" value="/WEB-INF/"></property>
+		<property name="suffix" value=".jsp"></property>
+	</bean>
+	
+	<bean id="exceptionResolver" class="sns.platform.common.resolver.ExceptionResolver"></bean>
+
+	
+	<bean id="downloadView" class="sns.platform.common.view.DownloadView"></bean>
+	<bean id="jsonView" class="org.springframework.web.servlet.view.json.MappingJackson2JsonView"></bean>
+	
+	<bean id="AuthoIntercepter" class="sns.platform.common.intercepter.AuthoIntercepter" />
+	<bean id="LoginIntercepter" class="sns.platform.common.intercepter.LoginInterceptor"></bean>
+	
+	
+	 <mvc:interceptors>
+		<mvc:interceptor>
+			<mvc:mapping path="/**" />
+			<mvc:exclude-mapping path="/login"/>
+			<mvc:exclude-mapping path="/user"/>
+			<mvc:exclude-mapping path="/user/**"/>
+			<mvc:exclude-mapping path="/home"/>
+			<mvc:exclude-mapping path="/board/*/file/**"/>
+			<mvc:exclude-mapping path="/resources/**" />
+			<ref bean="AuthoIntercepter" />
+		</mvc:interceptor>
+	</mvc:interceptors>
+
+	
+	<mvc:interceptors>
+		<mvc:interceptor>
+			<mvc:mapping path="/login" />
+			<mvc:mapping path="/user/modify"/>
+			<ref bean="LoginIntercepter" />
+		</mvc:interceptor>
+	</mvc:interceptors>
+
+	<context:component-scan base-package="sns.platform.biz">
+		<context:exclude-filter type="annotation" expression="org.springframework.stereotype.Service"/>
+		<context:exclude-filter type="annotation" expression="org.springframework.stereotype.Repository"/>
+	</context:component-scan>
+	
+</beans>

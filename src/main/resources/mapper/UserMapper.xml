@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="UserMapper">
+
+    <resultMap type="hashmap" id="usermap">
+		<result column="USER_NUMBER" property="userNum" />
+		<result column="USER_ID" property="userId" />
+		<result column="USER_NICKNAME" property="userNick" />
+		<result column="USER_PASSWORD" property="userPass" />
+		<result column="USER_IMAGEPATH" property="userFile" />
+	</resultMap>
+	
+	
+	
+
+	<insert id="insert">
+		INSERT INTO USER (
+		       USER_ID, 
+		       USER_PASSWORD,
+		       USER_NICKNAME,
+		       USER_IMAGEPATH,
+		       <if test="pnsToken != null">
+		       PNS_TOKEN,
+		       </if>
+		       USER_TYPE
+		     ) VALUES (
+		       #{userId}, 
+		       #{userPass}, 
+		       #{userNick},
+		       #{userFile},
+		       <if test="pnsToken != null">
+		       #{pnsToken},
+		       </if>
+		       #{userType}
+		     )
+	</insert>
+
+	<select id="selectOne" resultMap="usermap">
+		SELECT
+		       USER_NUMBER,
+		       USER_ID,
+		       USER_NICKNAME,
+		       USER_IMAGEPATH 
+		  FROM USER 
+		 WHERE USER_NUMBER=#{userNum};
+	</select>
+
+	<select id="login" resultType="UserVO">
+		SELECT 
+		       USER_ID AS userId,
+		       USER_NICKNAME AS userNick,
+		       USER_IMAGEPATH AS userFile,
+		       USER_NUMBER AS userNum ,
+		       USER_PASSWORD AS userPass, 
+		       PNS_TOKEN AS pnsToken,
+		       USER_TYPE AS userType 
+		  FROM USER 
+		 WHERE USER_ID = #{userId} 
+		   AND USER_PASSWORD = #{userPass}
+		   AND USER_TYPE = #{userType};
+	</select>
+	
+	<select id="selectUpdate" resultType="UserVO">
+		SELECT 
+		       USER_ID AS userId,
+		       USER_NICKNAME AS userNick,
+		       USER_IMAGEPATH AS userFile,
+		       USER_NUMBER AS userNum ,
+		       USER_PASSWORD AS userPass 
+		  FROM USER 
+		 WHERE USER_NUMBER = #{userNum} 
+		 <if test="userPass != null">
+		   AND USER_PASSWORD = #{userPass};
+		 </if>
+	</select>
+	
+	<select id="checkPassword" resultType="int">
+		SELECT 
+			   COUNT(*)	
+		  FROM USER 
+		 WHERE USER_ID = #{userId} 
+		   AND USER_PASSWORD=#{userPass};
+	</select>
+
+
+
+	<select id="checkUniQ" resultType="int">
+		SELECT 
+		       COUNT(*) 
+		  FROM USER 
+		<where>
+		<if test="userId != null">
+		   AND USER_ID = #{userId}
+		</if>
+		<if test="userNick != null">
+		   AND USER_NICKNAME = #{userNick}
+		</if>
+		</where>
+	</select>
+
+
+
+	<update id="update">
+		UPDATE USER 
+		   SET 
+		    <if test="userNick != null">
+			   USER_NICKNAME = #{userNick},
+			</if>
+			<if test="userPass != null">
+			   USER_PASSWORD = #{userPass},
+			</if>
+			<if test="userFile != null">
+			   USER_IMAGEPATH = #{userFile},
+			</if>
+			   USER_UDTDATE = now()
+		 WHERE USER_NUMBER=#{userNum}
+	</update>
+
+	<select id="deleteUserAllFileSelect" resultType="hashmap">
+		SELECT 
+               FILE.FILE_NUMBER AS fileNum,
+               FILE.FILE_PATH AS filePath
+          FROM USER
+          LEFT OUTER JOIN BOARD
+            ON USER.USER_NUMBER = BOARD.USER_NUMBER
+          LEFT OUTER JOIN FILE
+            ON BOARD.BOARD_NUMBER = FILE.BOARD_NUMBER
+         WHERE USER.USER_NUMBER = #{userNum}
+	</select>
+
+	<delete id="deleteUser">
+	    DELETE USER,BOARD,REPLY,FILE
+          FROM USER
+          LEFT OUTER JOIN BOARD
+            ON USER.USER_NUMBER = BOARD.USER_NUMBER
+          LEFT OUTER JOIN REPLY
+            ON USER.USER_NUMBER = REPLY.USER_NUMBER 
+            OR BOARD.BOARD_NUMBER = REPLY.BOARD_NUMBER
+          LEFT OUTER JOIN FILE
+            ON BOARD.BOARD_NUMBER = FILE.BOARD_NUMBER
+         WHERE USER.USER_NUMBER = #{userNum}
+	</delete>
+	
+	<update id="tokenupdate">
+		UPDATE USER 
+		   SET 
+		       PNS_TOKEN = #{pnsToken},	
+		       USER_UDTDATE = now()
+		 WHERE USER_NUMBER=#{userNum}
+	</update>
+
+
+</mapper>

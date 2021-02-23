@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ReplyMapper">
+
+    <resultMap type="hashmap" id="replymap">
+		<result column="USER_NUMBER" property="userNum" />
+		<result column="USER_ID" property="userId" />
+		<result column="USER_NICKNAME" property="userNick" />
+		<result column="REPLY_NUMBER" property="replyNum" />
+		<result column="REPLY_CONTENT" property="replyContent" />
+		<result column="REPLY_REGDATE" property="replyRegDate" />
+		<result column="REPLY_UDTDATE" property="replyUdtDate" />
+	</resultMap>
+
+	<insert id="insert" >
+        INSERT INTO REPLY (
+	           BOARD_NUMBER,
+	           USER_NUMBER,
+	           REPLY_CONTENT
+	         ) VALUES (
+	           #{boardNum},
+	           #{userNum},
+	           #{replyContent}
+	         )
+    </insert>
+	
+	<select id="selectPage" resultMap="replymap">
+		SELECT      
+			   USER.USER_NUMBER,
+               USER_NICKNAME,
+               USER_ID,
+	           REPLY_NUMBER,
+	           REPLY_CONTENT,
+               DATE_FORMAT(REPLY_REGDATE, '%Y%m%d%H%i%S') REPLY_REGDATE,
+               DATE_FORMAT(REPLY_UDTDATE, '%Y%m%d%H%i%S') REPLY_UDTDATE
+          FROM REPLY 
+	      LEFT OUTER JOIN USER 
+	        ON (REPLY.USER_NUMBER = USER.USER_NUMBER)
+	     WHERE BOARD_NUMBER = #{boardNum}
+	     <if test="lastReplyNum+''  != '-1' ">
+	     <![CDATA[
+	       AND REPLY_NUMBER < #{lastReplyNum}
+	     ]]>
+	     </if>
+	     <if test="lastReplyNum+''  == '-1' ">
+	     <![CDATA[
+	       AND REPLY_NUMBER <= 
+	           (
+	            SELECT 
+	                   MAX(REPLY_NUMBER) 
+	              FROM REPLY
+	             WHERE BOARD_NUMBER = #{boardNum} 
+	           )
+	     ]]>
+	     </if>    
+	  ORDER BY REPLY.REPLY_NUMBER DESC
+         LIMIT 0, #{pageNum}
+    </select>
+         
+    <update id="update">
+	    UPDATE REPLY
+	       SET REPLY_CONTENT = #{replyContent},
+	       	   REPLY_UDTDATE = now()
+	     WHERE REPLY_NUMBER = #{replyNum} 
+	       AND BOARD_NUMBER = #{boardNum}
+	       AND USER_NUMBER = #{userNum}
+	</update>
+	
+	<delete id="deleteOne">
+	    DELETE
+	      FROM REPLY
+	     WHERE REPLY_NUMBER = #{replyNum}
+	       AND BOARD_NUMBER = #{boardNum}
+	       AND USER_NUMBER = #{userNum}
+    </delete>
+		 
+   
+
+</mapper>

@@ -1,0 +1,95 @@
+
+.navbar{
+	background-color: #c2fcd7;
+}
+
+.navbar .container .navbar-header .navbar-brand {
+	color: #f55478;
+}
+
+.navbar .collapse .navbar-custom a{
+	color: gray;
+}
+
+
+
+
+.navbar .navbar-menu:hover{
+	background-color: #f7fbce;
+}
+
+
+
+.navbar .dropdown img{
+	height: 50px;
+	width: 50px;
+	
+}
+
+.navbar .container .navbar-collapse .dropdown .dropdown-menu .navbar-menu{
+	background-color: #c2fcd7;
+}
+
+
+.modal .modal-dialog .modal-content .modal-body p{
+	color: #433203;
+	margin: 3px;
+}
+.modal .modal-dialog .modal-content .modal-body input{
+	margin: 5px;
+}
+.modal .modal-dialog .modal-content .modal-body .modal-img{
+	height: 150px;
+	width: 150px;
+	position: absolute;
+	left: 60%;
+	top: 15%;
+}
+.modal .modal-dialog .modal-content .modal-body .modal-img-cancel{
+	visibility:hidden;
+	position: absolute;
+	left: 80%;
+	top: 50%;
+}
+.dropzone{
+	margin-top: 10px;
+	background-color: olive;
+	border-radius:15px;
+	height: 150px;
+	width: 100%;
+	font-size: 40px; 
+	font-size-adjust: auto;
+	color: black;
+	text-align: center;
+	
+}
+.modal .modal-dialog .modal-content .modal-body .btn-check{
+	background-color: #ee427a;
+}
+
+.modal-login .modal-dialog .modal-content .modal-body .btn-custom.btn-login{
+	position: absolute;
+	left: 60%;
+	top: 15%;
+	height: 100px;
+	width: 150px;	
+	background-color: #d2a4cf;
+	font-size: x-large;
+}
+
+.modal-login .modal-content{
+	width: 90%
+}
+
+.modal-body .board-textarea{
+	width: 100%;
+	height: 100px;
+}
+
+.modal-body .board-file-list img{
+	width: 50px;
+	height: 50px;
+}
+.modal-body .board-reg-div button {
+	float: right;
+}

@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="BoardMapper">
+	
+	<resultMap type="hashmap" id="boardMap">
+		<result column="USER_NUMBER" property="userNum" />
+		<result column="USER_NICKNAME" property="userNick" />
+		<result column="USER_ID" property="userId" />
+		<result column="BOARD_NUMBER" property="boardNum" />
+		<result column="BOARD_CONTENT" property="boardContent" />
+		<result column="BOARD_REGDATE" property="boardRegDate" />
+		<result column="BOARD_UDTDATE" property="boardUdtDate" />
+		<result column="BOARD_REPLYCOUNT" property="boardReplyCnt" />
+		<result column="BOARD_IMAGE_COUNT" property="boardImgCnt" />
+		<result column="BOARD_AUDIO_COUNT" property="boardAudCnt" />
+		<result column="BOARD_VIDEO_COUNT" property="boardVidCnt" />
+		<result column="BOARD_IMAGE_NUMBER" property="boardFirstImg" />
+	</resultMap>
+	
+
+	
+	<insert id="insert" parameterType="java.util.HashMap" >
+	    INSERT INTO BOARD (
+	           BOARD_CONTENT,
+	           USER_NUMBER
+        ) VALUES (
+	           #{boardContent},
+               #{userNum}
+	    )
+	<selectKey  keyProperty="boardNum" order="AFTER" resultType="int">
+        SELECT 
+               LAST_INSERT_ID() boardNum
+    </selectKey>
+	</insert>
+ 	
+ 	<select id="selectPage" resultMap="boardMap">
+		<![CDATA[
+	    SELECT      
+			   USER.USER_NUMBER,
+               USER_NICKNAME,
+               USER_ID,
+	           BOARD_NUMBER,
+	           BOARD_CONTENT,
+               DATE_FORMAT(BOARD_REGDATE, '%Y%m%d%H%i%S') BOARD_REGDATE,
+               DATE_FORMAT(BOARD_UDTDATE, '%Y%m%d%H%i%S') BOARD_UDTDATE,
+               BOARD_REPLYCOUNT,
+               BOARD_IMAGE_COUNT,
+               BOARD_AUDIO_COUNT,
+               BOARD_VIDEO_COUNT,
+               BOARD_IMAGE_NUMBER
+          FROM BOARD 
+	      LEFT OUTER JOIN USER 
+	        ON (BOARD.USER_NUMBER = USER.USER_NUMBER)
+	     WHERE BOARD_NUMBER < #{lastBoardNum}
+	     ]]> 
+	     <if test="lastBoardNum+''  == '-1' ">
+	     <![CDATA[
+	        OR BOARD_NUMBER <= 
+	           (
+	            SELECT 
+	                   MAX(BOARD_NUMBER) 
+	              FROM BOARD
+	            )
+	     ]]>
+	     </if>
+	     <if test="searchType != null">
+	       <if test="searchType == 'date'">
+	       AND BOARD_REGDATE >= STR_TO_DATE(#{keyWord},"%Y%m%d%") 
+	       <![CDATA[
+	       AND BOARD_REGDATE < STR_TO_DATE(#{keyWord},"%Y%m%d%") +1
+	       ]]> 
+	       </if>
+	       <if test="searchType == 'name'">
+	       AND USER.USER_NICKNAME  LIKE  CONCAT('%',#{keyWord},'%') 
+	       </if>
+	     </if>
+	  ORDER BY BOARD.BOARD_NUMBER 
+	  	 <if test="searchType != 'date'" >
+	  	 	DESC
+	  	 </if>
+         LIMIT 0, #{pageNum}
+     </select>
+     
+     <select id="selectOne" resultMap="boardMap">
+        SELECT      
+     	       USER.USER_NUMBER,
+               USER_NICKNAME,
+               USER_ID,
+	           BOARD_NUMBER,
+	           BOARD_CONTENT,
+               DATE_FORMAT(BOARD_REGDATE, '%Y%m%d%H%i%S') BOARD_REGDATE,
+               DATE_FORMAT(BOARD_UDTDATE, '%Y%m%d%H%i%S') BOARD_UDTDATE,
+               BOARD_REPLYCOUNT,
+               BOARD_IMAGE_COUNT,
+               BOARD_AUDIO_COUNT,
+               BOARD_VIDEO_COUNT
+         FROM  BOARD 
+	     LEFT  OUTER JOIN USER 
+	       ON  (BOARD.USER_NUMBER = USER.USER_NUMBER)
+	     WHERE BOARD_NUMBER = #{boardNum}
+     </select>
+     
+    
+     <update id = "replyCnt">
+        UPDATE BOARD 
+           SET BOARD_REPLYCOUNT = 
+              (
+               SELECT 
+                      COUNT(*) 
+                 FROM REPLY 
+                WHERE BOARD_NUMBER = #{boardNum}
+               )
+         WHERE BOARD_NUMBER = #{boardNum} 
+     </update>
+     
+     
+     
+     
+     <delete id="deleteOne">
+        DELETE BOARD,REPLY,FILE
+          FROM BOARD
+          LEFT OUTER JOIN REPLY
+          	ON BOARD.BOARD_NUMBER = REPLY.BOARD_NUMBER 
+          LEFT OUTER JOIN FILE
+          	ON BOARD.BOARD_NUMBER = FILE.BOARD_NUMBER 
+         WHERE BOARD.BOARD_NUMBER = #{boardNum}
+           AND BOARD.USER_NUMBER = #{userNum}
+     </delete>
+     
+     
+     
+     
+     
+     
+     <update id="update">
+     	UPDATE BOARD 
+           SET BOARD_CONTENT = #{boardContent} ,
+               BOARD_IMAGE_COUNT = 
+               					 (
+                                 SELECT 
+										COUNT(*)
+								   FROM FILE 
+								  WHERE BOARD_NUMBER = #{boardNum}
+								    AND FILE_TYPE Like "%image%"
+                                  ), 
+               BOARD_AUDIO_COUNT = 
+                				 (
+                                 SELECT 
+										COUNT(*)
+								   FROM FILE 
+								  WHERE BOARD_NUMBER = #{boardNum}
+								    AND FILE_TYPE Like "%audio%"
+                                  ), 
+ 			   BOARD_VIDEO_COUNT = 
+ 			   					 (
+                                 SELECT 
+										COUNT(*)
+								   FROM FILE 
+								  WHERE BOARD_NUMBER = #{boardNum}
+								    AND FILE_TYPE Like "%video%"
+                                  ),
+ 			   BOARD_UDTDATE = now(),
+               BOARD_IMAGE_NUMBER = 
+							   (
+                                SELECT 
+										MIN(FILE_NUMBER)
+								   FROM FILE 
+								  WHERE BOARD_NUMBER = #{boardNum}
+                                    AND FILE_TYPE Like "%image%"
+							   GROUP BY BOARD_NUMBER 
+                               )
+         WHERE BOARD_NUMBER = #{boardNum}
+           AND USER_NUMBER = #{userNum}
+     </update>
+    
+</mapper>
